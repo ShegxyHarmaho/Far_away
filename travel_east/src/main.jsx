@@ -10,6 +10,7 @@ const initialItems = [
 
 function App() {
   const [items, setItems] = useState(initialItems);
+  const [sortPacked, setSortPacked] = useState(false); // New state for sorting
 
   // Handle item packing toggle
   function handleTogglePacked(id) {
@@ -25,15 +26,36 @@ function App() {
     setItems((items) => items.filter((item) => item.id !== id));
   }
 
+  // Clear all items
+  function handleClearAll() {
+    setItems([]);
+  }
+
+  // Reset all items (unpack everything)
+  function handleReset() {
+    setItems((items) => items.map((item) => ({ ...item, packed: false })));
+  }
+
+  // Sort items by packed status
+  const sortedItems = sortPacked
+    ? [...items].sort((a, b) => Number(a.packed) - Number(b.packed))
+    : items;
+
   return (
     <div className="app">
       <Logo />
       <Form setItems={setItems} items={items} />
       <PackingList
-        items={items}
+        items={sortedItems}
         onTogglePacked={handleTogglePacked}
         onDelete={handleDelete}
+        sortPacked={sortPacked}
+        setSortPacked={setSortPacked}
       />
+      <div className="controls">
+        <button onClick={handleClearAll}>Clear All Items</button>
+        <button onClick={handleReset}>Reset Packing List</button>
+      </div>
       <Stats items={items} />
     </div>
   );
@@ -82,9 +104,25 @@ function Form({ setItems, items }) {
   );
 }
 
-function PackingList({ items, onTogglePacked, onDelete }) {
+function PackingList({
+  items,
+  onTogglePacked,
+  onDelete,
+  sortPacked,
+  setSortPacked,
+}) {
   return (
     <div className="list">
+      <div className="sort-control">
+        <label>
+          <input
+            type="checkbox"
+            checked={sortPacked}
+            onChange={() => setSortPacked(!sortPacked)}
+          />{" "}
+          Sort packed items to bottom
+        </label>
+      </div>
       <ul>
         {items.map((item) => (
           <Item
